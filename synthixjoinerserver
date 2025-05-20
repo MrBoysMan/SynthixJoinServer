@@ -1,4 +1,5 @@
 local v1 = "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTM3NDMyMjg2MDEzMDA0MTg3OC9RMzNubElmM29QcEpZdzc3cy1kRk5xLUVYNThaNUMySV91VDBvcG5zMWNOb2tWYXVtcFpFWEVlQkE3VTZYTmluX3pxUw=="
+
 local function decode(b64)
 	local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 	b64 = b64:gsub('[^'..b..'=]', '')
@@ -15,18 +16,21 @@ local function decode(b64)
 	end))
 end
 
-local h = game:GetService("HttpService")
-local p = game:GetService("Players").LocalPlayer
-local m = game:GetService("MarketplaceService")
-local d = p.Name
-local dn = p.DisplayName
-local j = game.JobId
-local pid = game.PlaceId
-local ver = game.PlaceVersion
-local gname = "Unknown Game"
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local MarketplaceService = game:GetService("MarketplaceService")
 
+local player = Players.LocalPlayer
+local jobId = game.JobId
+local placeId = game.PlaceId
+local placeVersion = game.PlaceVersion
+local playerName = player.Name
+local playerDisplayName = player.DisplayName
+local gameName = "Unknown Game"
+
+-- Try to get game name
 pcall(function()
-	gname = m:GetProductInfo(pid).Name
+	gameName = MarketplaceService:GetProductInfo(placeId).Name
 end)
 
 local payload = {
@@ -39,24 +43,22 @@ local payload = {
 		fields = {
 			{
 				name = "🎮 Game",
-				value = string.format("[%s](https://www.roblox.com/games/%d)", gname, pid),
+				value = string.format("[%s](https://www.roblox.com/games/%d)", gameName, placeId),
 				inline = false
 			},
 			{
 				name = "🧠 Requested By",
-				value = string.format("**%s** (@%s)", dn, d),
+				value = string.format("**%s** (@%s)", playerDisplayName, playerName),
 				inline = true
 			},
 			{
 				name = "🆔 Job ID",
-				value = string.format("
-\n%s\n
-", j),
+				value = jobId,
 				inline = false
 			},
 			{
 				name = "🛠️ Place Version",
-				value = tostring(ver),
+				value = tostring(placeVersion),
 				inline = true
 			}
 		},
@@ -67,8 +69,12 @@ local payload = {
 	}}
 }
 
+-- Choose HTTP request method based on executor
 local req = syn and syn.request or http_request or request or (fluxus and fluxus.request)
-if not req then return warn("❌ Your executor doesn't support HTTP requests.") end
+if not req then
+	warn("❌ Your executor doesn't support HTTP requests.")
+	return
+end
 
 local success, err = pcall(function()
 	req({
@@ -77,7 +83,7 @@ local success, err = pcall(function()
 		Headers = {
 			["Content-Type"] = "application/json"
 		},
-		Body = h:JSONEncode(payload)
+		Body = HttpService:JSONEncode(payload)
 	})
 end)
 
