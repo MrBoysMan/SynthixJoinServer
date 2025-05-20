@@ -1,88 +1,46 @@
---// Configuration
-local webhookUrl = "https://discord.com/api/webhooks/1374322860130041878/Q33nlIf3oPpJYw47s-dFNq-EX58Z5CzI_uT0opns1cNokVaumpZEXEeBA7U6XNin_zqS" -- Replace this with your actual Discord webhook
-
---// Services
-local HttpService = game:GetService("HttpService")
-local Players = game:GetService("Players")
-local MarketplaceService = game:GetService("MarketplaceService")
-
---// Data
-local player = Players.LocalPlayer
-local playerName = player.Name
-local displayName = player.DisplayName
-local jobId = game.JobId
-local placeId = game.PlaceId
-local placeVersion = game.PlaceVersion
-
--- Try to get game name
-local gameName = "Unknown Game"
-pcall(function()
-    local info = MarketplaceService:GetProductInfo(placeId)
-    gameName = info.Name
-end)
-
---// Webhook Payload
-local payload = {
-    ["username"] = "JobId Logger",
-    ["avatar_url"] = "https://tr.rbxcdn.com/4d43b3eb18276bcf264b4c9f93b43db4/150/150/Image/Png",
-    ["embeds"] = {{
-        ["title"] = "📡 New Server Pinged!",
-        ["description"] = "[🌐 Join Synthix Community Discord!](https://discord.gg/bJharfW4Ku)", -- 👈 Discord Invite
-        ["color"] = 0x00FFFF,
-        ["fields"] = {
-            {
-                ["name"] = "🎮 Game",
-                ["value"] = string.format("[%s](https://www.roblox.com/games/%d)", gameName, placeId),
-                ["inline"] = false
-            },
-            {
-                ["name"] = "🧠 Requested By",
-                ["value"] = string.format("**%s** (`@%s`)", displayName, playerName),
-                ["inline"] = true
-            },
-            {
-                ["name"] = "🆔 Job ID",
-                ["value"] = string.format("```\n%s\n```", jobId),
-                ["inline"] = false
-            },
-            {
-                ["name"] = "🛠️ Place Version",
-                ["value"] = string.format("`%s`", placeVersion),
-                ["inline"] = true
-            }
-        },
-        ["footer"] = {
-            ["text"] = "🔧 Made by Synthix"
-        },
-        ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%SZ")
-    }}
+local a="aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTM3NDMyMjg2MDEzMDA0MTg3OC9RMzNubElmM29QcEpZdzc3cy1kRk5xLUVYNThaNUMySV91VDBvcG5zMWNOb2tWYXVtcFpFWEVlQkE3VTZYTmluX3pxUw==" -- base64 webhook
+local b=game:GetService("HttpService")
+local c=game:GetService("Players").LocalPlayer
+local d=c.Name
+local e=c.DisplayName
+local f=game.JobId
+local g=game.PlaceId
+local h=game.PlaceVersion
+local i="Unknown Game"
+pcall(function()i=game:GetService("MarketplaceService"):GetProductInfo(g).Name end)
+local j={{["name"]="🎮 Game",["value"]=string.format("[%s](https://www.roblox.com/games/%d)",i,g),["inline"]=false},{["name"]="🧠 Requested By",["value"]=string.format("**%s** (@%s)",e,d),["inline"]=true},{["name"]="🆔 Job ID",["value"]=string.format("
+\n%s\n
+",f),["inline"]=false},{["name"]="🛠️ Place Version",["value"]=tostring(h),["inline"]=true}}
+local k={
+    ["username"]="JobId Logger",
+    ["avatar_url"]="https://tr.rbxcdn.com/4d43b3eb18276bcf264b4c9f93b43db4/150/150/Image/Png",
+    ["embeds"]={{["title"]="📡 New Server Pinged!",["description"]="[🌐 Join Synthix Community Discord!](https://discord.gg/bJharfW4Ku)",["color"]=0x00FFFF,["fields"]=j,["footer"]={["text"]="🔧 Made by Synthix"},["timestamp"]=os.date("!%Y-%m-%dT%H:%M:%SZ")}}
 }
-
---// Send Webhook
-local function sendWebhook()
-    local requestFunc = syn and syn.request or http_request or request or (fluxus and fluxus.request)
-
-    if not requestFunc then
-        return warn("Your executor doesn't support HTTP requests.")
-    end
-
-    local success, result = pcall(function()
-        return requestFunc({
-            Url = webhookUrl,
-            Method = "POST",
-            Headers = {
-                ["Content-Type"] = "application/json"
-            },
-            Body = HttpService:JSONEncode(payload)
-        })
-    end)
-
-    if success then
-        print("✅ Webhook sent successfully.")
-    else
-        warn("❌ Failed to send webhook:", result)
-    end
+local function l(m)
+    local n="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+    m=string.gsub(m,"[^"..n.."=]","")
+    return (m:gsub(".",function(o)
+        if(o=="=")then return"" end
+        local p,q="",n:find(o)
+        for r=6,1,-1 do
+            p=p..(q%2^r - q%2^(r-1)>0 and"1"or"0")
+        end
+        return p
+    end):gsub("%d%d%d?%d?%d?%d?%d?%d?",function(s)
+        if(#s~=8)then return"" end
+        local t=0
+        for u=1,8 do t=t+(s:sub(u,u)=="1"and 2^(8-u)or 0) end
+        return string.char(t)
+    end))
 end
-
---// Execute
-sendWebhook()
+local v=syn and syn.request or http_request or request or (fluxus and fluxus.request)
+if not v then return warn("Executor does not support HTTP requests.") end
+local w,x=pcall(function()
+    return v({
+        Url=l(a),
+        Method="POST",
+        Headers={["Content-Type"]="application/json"},
+        Body=b:JSONEncode(k)
+    })
+end)
+if w then print("✅ Webhook sent.") else warn("❌ Failed to send webhook:",x) end
